@@ -1,0 +1,35 @@
+Grundlæggende Struktur
+
+Følgende tekst er et eksempel på emnet miljø helt:
+
+Titel: 
+
+Kapitel 1: introduktion af lille miljø helt
+
+Introduktion af hovedpersonen
+Beskrivelse
+
+Kapitel 2: Problemet Opstår
+
+Noget går galt 
+Beskrivelse af problemet og hvorfor det er vigtigt at løse det
+
+Kapitel 3: På Eventyr
+
+Hovedpersonen beslutter sig for at løse problemet og tager på eventyr
+Møder forskellige karakterer, der hjælper med råd og vejledning
+
+Kapitel 4: Samarbejde og Løsning
+
+Hovedpersonen og de forskellige karakterer samarbejder med at løse problemet
+Beskrivelse af deres indsats og samarbejde
+
+Kapitel 5: Problemet bliver løst
+
+Problemet bliver løst
+Hovedpersonen og de forskellige karakterer som nu er blevet venner fejrer deres succes
+
+Kapitel 6: En Lærdom for Alle
+
+Lille Miljøhelt deler vigtige lærdomme
+Afslutning med lykkelig slutning
