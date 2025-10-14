@@ -1,5 +1,6 @@
 
-import React from "react";
+
+import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { BookOpen, Users, Library, Sparkles, Heart, Trophy } from "lucide-react";
@@ -13,6 +14,19 @@ export default function Layout({ children, currentPageName }) {
   const isActive = (pageName) => {
     return location.pathname === createPageUrl(pageName);
   };
+
+  // Defensive check to prevent any null ID API calls
+  useEffect(() => {
+    // Clear any potentially corrupted localStorage data on app start
+    try {
+      const storedId = localStorage.getItem('activeChildId');
+      if (storedId === 'null' || storedId === 'undefined' || storedId === '') {
+        localStorage.removeItem('activeChildId');
+      }
+    } catch (error) {
+      console.warn('Failed to clean localStorage:', error);
+    }
+  }, []);
 
   return (
     <ErrorBoundary>
@@ -52,7 +66,7 @@ export default function Layout({ children, currentPageName }) {
             <header className="bg-white/80 backdrop-blur-sm border-b border-purple-100 sticky top-0 z-50">
               <div className="max-w-6xl mx-auto px-4 py-4">
                 <div className="flex items-center justify-between">
-                  <Link to={createPageUrl("Welcome")} className="flex items-center gap-3">
+                  <Link to={createPageUrl("Forside")} className="flex items-center gap-3">
                     <div className="w-10 h-10 story-gradient rounded-full flex items-center justify-center">
                       <BookOpen className="w-6 h-6 text-white" />
                     </div>
@@ -65,26 +79,26 @@ export default function Layout({ children, currentPageName }) {
                   {/* Navigation for larger screens */}
                   <nav className="hidden md:flex items-center gap-6">
                     <Link
-                      to={createPageUrl("Welcome")}
+                      to={createPageUrl("Forside")}
                       className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 ${
-                        isActive("Welcome")
+                        isActive("Forside")
                           ? "bg-pink-100 text-pink-700"
                           : "text-gray-600 hover:text-pink-600 hover:bg-pink-50"
                       }`}
                     >
                       <Sparkles className="w-4 h-4" />
-                      <span className="font-medium">Hjem</span>
+                      <span className="font-medium">Forside</span>
                     </Link>
                     <Link
-                      to={createPageUrl("Children")}
+                      to={createPageUrl("Profile")}
                       className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 ${
-                        isActive("Children")
+                        isActive("Profile")
                           ? "bg-purple-100 text-purple-700"
                           : "text-gray-600 hover:text-purple-600 hover:bg-purple-50"
                       }`}
                     >
                       <Users className="w-4 h-4" />
-                      <span className="font-medium">Børn</span>
+                      <span className="font-medium">Profil</span>
                     </Link>
                     <Link
                       to={createPageUrl("Library")}
@@ -113,7 +127,7 @@ export default function Layout({ children, currentPageName }) {
                       className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 ${
                         isActive("StoryOfTheMonth")
                           ? "bg-yellow-100 text-yellow-700"
-                          : "text-gray-600 hover:text-yellow-600 hover:bg-yellow-50"
+                          : "text-gray-600 hover:text-green-600 hover:bg-yellow-50"
                       }`}
                     >
                       <Trophy className="w-4 h-4" />
@@ -133,26 +147,26 @@ export default function Layout({ children, currentPageName }) {
             <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-t border-purple-100 z-50">
               <div className="flex justify-around py-3">
                 <Link
-                  to={createPageUrl("Welcome")}
+                  to={createPageUrl("Forside")}
                   className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all duration-200 ${
-                    isActive("Welcome")
+                    isActive("Forside")
                       ? "text-pink-600"
                       : "text-gray-500"
                   }`}
                 >
                   <Sparkles className="w-5 h-5" />
-                  <span className="text-xs font-medium">Hjem</span>
+                  <span className="text-xs font-medium">Forside</span>
                 </Link>
                 <Link
-                  to={createPageUrl("Children")}
+                  to={createPageUrl("Profile")}
                   className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all duration-200 ${
-                    isActive("Children")
+                    isActive("Profile")
                       ? "text-purple-600"
                       : "text-gray-500"
                   }`}
                 >
                   <Users className="w-5 h-5" />
-                  <span className="text-xs font-medium">Børn</span>
+                  <span className="text-xs font-medium">Profil</span>
                 </Link>
                 <Link
                   to={createPageUrl("Library")}
@@ -194,3 +208,4 @@ export default function Layout({ children, currentPageName }) {
     </ErrorBoundary>
   );
 }
+

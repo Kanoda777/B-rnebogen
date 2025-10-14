@@ -1,13 +1,55 @@
 import React, { useState, useEffect } from "react";
 import { SharedStory } from "@/api/entities";
 import { motion } from "framer-motion";
-import { Trophy, Feather, User, CheckCircle } from "lucide-react";
+import { Trophy, Feather, User, CheckCircle, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+
+const CountdownBlock = ({ value, label }) => (
+    <div className="flex flex-col items-center justify-center p-4 bg-white/70 backdrop-blur-sm rounded-2xl shadow-inner min-w-[70px] md:min-w-[90px] border border-white/80">
+        <span className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text story-gradient">{String(value).padStart(2, '0')}</span>
+        <span className="text-xs md:text-sm text-gray-500 mt-1">{label}</span>
+    </div>
+);
 
 export default function StoryOfTheMonth() {
     const [winner, setWinner] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    
+    const calculateTimeLeft = () => {
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        
+        // Next month's first day
+        const nextMonth = new Date(currentYear, currentMonth + 1, 1);
+        const difference = nextMonth.getTime() - now.getTime();
+        
+        console.log("Current time:", now.toISOString());
+        console.log("Next month:", nextMonth.toISOString());
+        console.log("Difference (ms):", difference);
+        
+        if (difference > 0) {
+            const timeLeft = {
+                days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+                minutes: Math.floor((difference / (1000 * 60)) % 60),
+                seconds: Math.floor((difference / 1000) % 60),
+            };
+            console.log("Time left:", timeLeft);
+            return timeLeft;
+        }
+        
+        // If we're somehow past the deadline, show zeros
+        return {
+            days: 0,
+            hours: 0,
+            minutes: 0,
+            seconds: 0,
+        };
+    };
+
+    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
     useEffect(() => {
         const fetchWinner = async () => {
@@ -17,6 +59,13 @@ export default function StoryOfTheMonth() {
             setIsLoading(false);
         };
         fetchWinner();
+    }, []);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setTimeLeft(calculateTimeLeft());
+        }, 1000);
+        return () => clearInterval(timer);
     }, []);
 
     if (isLoading) {
@@ -49,18 +98,7 @@ export default function StoryOfTheMonth() {
                     </p>
                 </motion.div>
 
-                {!winner ? (
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                        className="text-center py-16"
-                    >
-                        <Trophy className="w-20 h-20 mx-auto mb-6 text-gray-300" />
-                        <h3 className="text-xl font-bold text-gray-700 mb-2">Ingen vinder valgt endnu</h3>
-                        <p className="text-gray-500">Kom snart tilbage for at se, hvilken historie der vinder denne måned!</p>
-                    </motion.div>
-                ) : (
+                {winner ? (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -106,7 +144,6 @@ export default function StoryOfTheMonth() {
                                                     className="rounded-xl my-6 w-full max-w-md mx-auto shadow-lg"
                                                 />
                                             )}
-                                            {/* Splitting content by newline to create paragraphs */}
                                             {chapter.content.split('\n').map((paragraph, pIndex) => (
                                                 <p key={pIndex} className="mb-4">{paragraph}</p>
                                             ))}
@@ -116,7 +153,32 @@ export default function StoryOfTheMonth() {
                             </CardContent>
                         </Card>
                     </motion.div>
+                ) : (
+                    <div className="text-center py-12 text-gray-500">
+                        <p>Der er endnu ikke kåret en vinder for denne måned. Stem i Fællesskabet!</p>
+                    </div>
                 )}
+
+                {/* Countdown section - ALWAYS visible */}
+                <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.4 }}
+                    className="mt-12 text-center py-12 md:py-16 bg-white/50 backdrop-blur-sm rounded-3xl magic-shadow"
+                >
+                    <Clock className="w-16 h-16 mx-auto mb-6 text-purple-500" />
+                    <h3 className="text-2xl md:text-3xl font-bold text-gray-700 mb-4">Næste vinder kåres om...</h3>
+                    <p className="text-gray-500 mb-8 max-w-xl mx-auto px-4">
+                        Den historie med flest stemmer ved månedens udgang bliver kronet som vinder!
+                    </p>
+                    <div className="flex justify-center gap-2 md:gap-4 text-center px-4">
+                        <CountdownBlock value={timeLeft.days || 0} label="Dage" />
+                        <CountdownBlock value={timeLeft.hours || 0} label="Timer" />
+                        <CountdownBlock value={timeLeft.minutes || 0} label="Minutter" />
+                        <CountdownBlock value={timeLeft.seconds || 0} label="Sekunder" />
+                    </div>
+                </motion.div>
+
             </div>
         </div>
     );

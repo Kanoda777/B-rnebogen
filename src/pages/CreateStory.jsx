@@ -50,30 +50,67 @@ export default function CreateStory() {
   }, [selectActiveChild]);
 
   const generateStoryWithAPI = async (childData, theme) => {
-    // Mock API call structure - replace this with your real API integration
+    // 1. Calculate story parameters based on your logic
+    const chapters = Math.max(3, childData.age); // Ensure at least 3 chapters
+    
+    // Advanced logic for base words per chapter, with controlled scaling and a cap
+    const minBaseWords = 50; // Minimum words per chapter for a 3-year-old
+    const wordsPerYearIncrease = 20; // Words increase per year for each additional year of age
+    const maxBaseWords = 200; // Maximum words per chapter
+    
+    let calculatedBaseWords = minBaseWords + (childData.age - 3) * wordsPerYearIncrease;
+    // Ensure baseWordsPerChapter is within min and max limits
+    const baseWordsPerChapter = Math.min(maxBaseWords, Math.max(minBaseWords, calculatedBaseWords));
+    
+    const levelMultipliers = {
+      'let': 0.75, 
+      'standard': 1.0,
+      'udfordrende': 1.25
+    };
+    const wordsPerChapter = Math.round(baseWordsPerChapter * (levelMultipliers[childData.reading_level] || 1.0));
+    const totalWords = chapters * wordsPerChapter;
+
+    const readingLevelDanish = {
+      'let': 'Let',
+      'standard': 'Standard',
+      'udfordrende': 'Udfordrende'
+    };
+
+    // 2. Create the detailed prompt using your structure
     const storyPrompt = `
-      Create a magical, age-appropriate story for ${childData.name}, who is ${childData.age} years old.
-      Theme: ${theme}
-      Child's interests: ${childData.interests?.join(', ') || 'general adventures'}
-      Reading level: ${childData.reading_level}
+      Her er oplysningerne om barnet:
+      Barnets navn: ${childData.name}
+      Alder: ${childData.age} år
+      Tema: ${theme}
+      Ønsket læseniveau: ${readingLevelDanish[childData.reading_level]}
+
+      Regler for struktur:
+      Historien skal være opdelt i ${chapters} kapitler.
+      Hvert kapitel skal være på cirka ${wordsPerChapter} ord.
+      Den samlede historie vil derfor være på cirka ${totalWords} ord.
+
+      Skriv en magisk og alderssvarende historie PÅ DANSK til ${childData.name}. Historien skal:
+      - Passer til barnets alder (${childData.age} år) og det valgte læseniveau (${readingLevelDanish[childData.reading_level]}).
+      - Være opdelt i ${chapters} kapitler.
+      - Hvert kapitel skal indeholde:
+        - En kreativ og tydelig titel på DANSK.
+        - Cirka ${wordsPerChapter} ord indhold.
+        - En kort og præcis beskrivelse på ENGELSK af hvad en AI-tegner kan illustrere for netop dette kapitel (illustration_prompt).
+      - Bruge et fantasifuldt og opmuntrende sprog. Historien må gerne indeholde magi, eventyr, følelser og positive budskaber – men uden at blive for svær eller skræmmende.
+      - Vigtigt: Sørg for, at historien har en klar begyndelse, midte og slutning, og at budskabet er positivt.
+
+      VIGTIGT: Alt tekstindhold (historietitel, beskrivelse, kapiteltitler, kapitelindhold) SKAL være på DANSK.
       
-      Please create a story with:
-      - A captivating title that includes the child's name
-      - 3-4 short chapters, each with a descriptive title
-      - Child-friendly language appropriate for age ${childData.age}
-      - Interactive elements that engage the reader
-      - A positive, encouraging message
-      
-      Format the response as JSON with this structure:
+      Formater svaret som JSON med denne struktur:
       {
-        "title": "Story title with child's name",
-        "description": "Brief story description",
+        "title": "Historietitel på dansk",
+        "description": "Kort historiebeskrivelse på dansk",
         "chapters": [
           {
             "chapter_number": 1,
-            "title": "Chapter title",
-            "content": "Chapter content with multiple paragraphs",
-            "illustration_prompt": "Detailed description for illustration"
+            "title": "Kapitel-titel på dansk",
+            "content": "Indhold på dansk",
+            "illustration_prompt": "A detailed description in ENGLISH for an AI image generator to create an illustration for this chapter. Describe the scene, characters, and mood."
           }
         ]
       }
@@ -152,7 +189,7 @@ export default function CreateStory() {
       
       // Generate cover image
       const coverImage = await GenerateImage({
-        prompt: `Children's book cover for "${storyData.title}". Colorful, magical, and inviting. Shows the main character as a ${activeChild.age}-year-old child. Digital art style.`
+        prompt: `Children's book cover for a story titled "${storyData.title}". The story is in Danish. Colorful, magical, and inviting. Shows the main character as a ${activeChild.age}-year-old child. Digital art style.`
       });
 
       // Generate illustrations for chapters
@@ -193,37 +230,40 @@ export default function CreateStory() {
     setIsEditing(true);
   };
 
-  const handleSaveStory = async () => {
-    if (!editedStory.title.trim() || !editedStory.content.trim()) {
+  const handleSaveStory = async (storyData = null) => {
+    // Use provided storyData or editedStory
+    const dataToSave = storyData || editedStory;
+    
+    if (!dataToSave || !dataToSave.title?.trim() || !dataToSave.content?.trim()) {
       alert("Titel og indhold er påkrævet");
       return;
     }
 
     try {
       // Convert edited content back to chapters format
-      const contentSections = editedStory.content.split('\n\n---\n\n');
+      const contentSections = dataToSave.content.split('\n\n---\n\n');
       const chapters = contentSections.map((section, index) => {
-        const lines = section.split('\n');
+        const lines = section.split('\n').filter(line => line.trim());
         const titleMatch = lines[0]?.match(/^\*\*(.*?)\*\*$/);
-        const title = titleMatch ? titleMatch[1] : `Kapitel ${index + 1}`; // Default title if not found
-        const content = lines.slice(2).join('\n'); // Skip title and empty line
+        const title = titleMatch ? titleMatch[1] : `Kapitel ${index + 1}`;
+        const content = lines.slice(1).join('\n'); // Skip title only, empty lines are already filtered
         
         return {
           chapter_number: index + 1,
           title: title.trim(),
-          content: content.trim(),
-          illustration_prompt: `Children's book illustration for: ${title.trim()}`,
-          illustration_url: generatedStory.chapters[index]?.illustration_url || "" // Preserve existing illustration URL
+          content: content,
+          illustration_prompt: generatedStory?.chapters[index]?.illustration_prompt || `Children's book illustration for: ${title.trim()}`, // Preserve existing prompt or create new
+          illustration_url: generatedStory?.chapters[index]?.illustration_url || "" // Preserve existing illustration URL
         };
       });
 
       const storyToSave = {
-        title: editedStory.title.trim(),
-        description: editedStory.description.trim(),
-        child_name: editedStory.child_name.trim(),
-        theme: editedStory.theme.trim(),
+        title: dataToSave.title.trim(),
+        description: dataToSave.description.trim(),
+        child_name: dataToSave.child_name.trim(),
+        theme: dataToSave.theme.trim(),
         chapters: chapters,
-        cover_image_url: generatedStory.cover_image_url,
+        cover_image_url: generatedStory?.cover_image_url || "",
         current_chapter: 1,
         completed: false
       };
@@ -242,6 +282,25 @@ export default function CreateStory() {
       console.error("Error saving story:", error);
       alert("Kunne ikke gemme historie. Prøv igen.");
     }
+  };
+
+  const handleSaveAsIs = () => {
+    if (!generatedStory) {
+      alert("Ingen historie at gemme");
+      return;
+    }
+
+    const storyToSaveData = {
+      title: generatedStory.title,
+      description: generatedStory.description,
+      content: generatedStory.chapters.map(chapter => 
+        `**${chapter.title}**\n\n${chapter.content}`
+      ).join('\n\n---\n\n'),
+      child_name: activeChild?.name || "",
+      theme: selectedTheme || customTheme
+    };
+
+    handleSaveStory(storyToSaveData);
   };
 
   if (isEditing && editedStory) {
@@ -329,7 +388,7 @@ Mere indhold...`}
                     Annuller
                   </Button>
                   <Button
-                    onClick={handleSaveStory}
+                    onClick={() => handleSaveStory()}
                     className="flex-1 bg-gradient-to-r from-green-500 to-teal-500 text-white"
                   >
                     <BookOpen className="w-4 h-4 mr-2" />
@@ -376,19 +435,7 @@ Mere indhold...`}
                 Rediger historie
               </Button>
               <Button
-                onClick={() => {
-                  setEditedStory({
-                    title: generatedStory.title,
-                    description: generatedStory.description,
-                    content: generatedStory.chapters.map(chapter => 
-                      `**${chapter.title}**\n\n${chapter.content}`
-                    ).join('\n\n---\n\n'),
-                    author_name: activeChild?.name || "",
-                    child_name: activeChild?.name || "",
-                    theme: selectedTheme || customTheme
-                  });
-                  handleSaveStory();
-                }}
+                onClick={handleSaveAsIs}
                 className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white px-8 py-6 text-lg font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <BookOpen className="w-5 h-5 mr-2" />
@@ -444,11 +491,11 @@ Mere indhold...`}
             className="text-center mb-12"
           >
             <Link
-              to={createPageUrl("Children")}
+              to={createPageUrl("Profile")}
               className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-800 mb-6 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Tilbage til børneprofiler</span>
+              <span>Tilbage til profil</span>
             </Link>
 
             <div className="inline-flex items-center gap-3 bg-white/70 backdrop-blur-sm px-6 py-3 rounded-full mb-6 magic-shadow">

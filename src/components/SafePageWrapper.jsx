@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useProfile } from './providers/ProfileProvider';
 import { Child } from '@/api/entities';
@@ -59,7 +60,7 @@ export default function SafePageWrapper({ children, requiresProfile = false, pag
                         Du skal oprette en barneprofil før du kan bruge denne funktion.
                     </p>
                     <Button 
-                        onClick={() => window.location.href = createPageUrl('Children')}
+                        onClick={() => window.location.href = createPageUrl('Profile')}
                         className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-8 py-3 rounded-xl"
                     >
                         <Users className="w-4 h-4 mr-2" />
@@ -87,7 +88,7 @@ export default function SafePageWrapper({ children, requiresProfile = false, pag
                         Du skal vælge hvilket barn du vil skabe historier for.
                     </p>
                     <Button 
-                        onClick={() => window.location.href = createPageUrl('Children')}
+                        onClick={() => window.location.href = createPageUrl('Profile')}
                         className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-8 py-3 rounded-xl"
                     >
                         <Users className="w-4 h-4 mr-2" />

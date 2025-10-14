@@ -16,6 +16,12 @@ import ReadStory from "./ReadStory";
 
 import EditStory from "./EditStory";
 
+import ReadSharedStory from "./ReadSharedStory";
+
+import Profile from "./Profile";
+
+import Forside from "./Forside";
+
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 
 const PAGES = {
@@ -35,6 +41,12 @@ const PAGES = {
     ReadStory: ReadStory,
     
     EditStory: EditStory,
+    
+    ReadSharedStory: ReadSharedStory,
+    
+    Profile: Profile,
+    
+    Forside: Forside,
     
 }
 
@@ -78,6 +90,12 @@ function PagesContent() {
                 <Route path="/ReadStory" element={<ReadStory />} />
                 
                 <Route path="/EditStory" element={<EditStory />} />
+                
+                <Route path="/ReadSharedStory" element={<ReadSharedStory />} />
+                
+                <Route path="/Profile" element={<Profile />} />
+                
+                <Route path="/Forside" element={<Forside />} />
                 
             </Routes>
         </Layout>

@@ -6,7 +6,9 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   server: {
-    allowedHosts: true
+    host: 'localhost',       // 👈 sikrer korrekt host
+    port: 5173,              // 👈 sikrer at porten er den Base44 prøver at loade
+    allowedHosts: true,
   },
   resolve: {
     alias: {
@@ -21,4 +23,4 @@ export default defineConfig({
       },
     },
   },
-}) 
+})

@@ -28,7 +28,7 @@ export default function CreateChildForm({ onChildCreated, onCancel }) {
     age: "",
     interests: [],
     avatar_color: "#FF6B9D",
-    reading_level: "beginner",
+    reading_level: "standard", // Changed from "beginner" to "standard"
     parent_email: ""
   });
   const [customInterest, setCustomInterest] = useState("");
@@ -168,9 +168,9 @@ export default function CreateChildForm({ onChildCreated, onCancel }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="beginner">Begynder (3-5 år)</SelectItem>
-                  <SelectItem value="intermediate">Mellem (6-8 år)</SelectItem>
-                  <SelectItem value="advanced">Avanceret (9+ år)</SelectItem>
+                  <SelectItem value="let">Let (Kortere sætninger og færre ord)</SelectItem>
+                  <SelectItem value="standard">Standard (Alderssvarende)</SelectItem>
+                  <SelectItem value="udfordrende">Udfordrende (Længere og mere kompleks)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

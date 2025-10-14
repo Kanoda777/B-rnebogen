@@ -1,39 +1,64 @@
+
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { User, Star, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-const RatingStars = ({ rating = 0, onRate, storyId }) => {
+const RatingStars = ({ rating = 0, onRate, storyId, disabled, isLoggedIn }) => {
   const [hoverRating, setHoverRating] = useState(0);
-  const [currentRating, setCurrentRating] = useState(rating);
 
   const handleRate = async (value) => {
-    setCurrentRating(value);
+    if (disabled) return; // Already disabled if not logged in or already rated
     await onRate(storyId, value);
   };
-
-  return (
-    <div className="flex items-center gap-1">
+  
+  const stars = (
+    <div className={`flex items-center gap-1 ${disabled ? 'opacity-70' : ''}`}>
       {[1, 2, 3, 4, 5].map(star => (
         <Star
           key={star}
-          className={`w-5 h-5 cursor-pointer transition-colors duration-200 ${
-            (hoverRating || currentRating) >= star 
+          className={`w-5 h-5 transition-colors duration-200 ${
+            disabled ? 'cursor-not-allowed' : 'cursor-pointer'
+          } ${
+            (hoverRating || rating) >= star 
               ? "text-yellow-400 fill-yellow-400" 
-              : "text-gray-300"
+              : `text-gray-300 ${!disabled ? 'hover:text-yellow-300' : ''}`
           }`}
-          onMouseEnter={() => setHoverRating(star)}
-          onMouseLeave={() => setHoverRating(0)}
+          onMouseEnter={() => !disabled && setHoverRating(star)}
+          onMouseLeave={() => !disabled && setHoverRating(0)}
           onClick={() => handleRate(star)}
         />
       ))}
     </div>
   );
+
+  if (!isLoggedIn) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {stars}
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Log ind for at bedømme</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
+  return stars;
 };
 
-export default function StoryCard({ story, ratingInfo, onRate, isFeatured = false }) {
+export default function StoryCard({ story, ratingInfo, userRating, onRate, isFeatured = false, currentUser }) {
   const avgRating = ratingInfo && ratingInfo.count > 0 ? (ratingInfo.total / ratingInfo.count) : 0;
   const ratingCount = ratingInfo ? ratingInfo.count : 0;
   
@@ -84,7 +109,16 @@ export default function StoryCard({ story, ratingInfo, onRate, isFeatured = fals
         </p>
 
         <div className="flex flex-col gap-3">
-           <RatingStars rating={0} onRate={onRate} storyId={story.id} />
+           <div className="space-y-1">
+                <p className="text-xs text-gray-500">{userRating ? 'Din bedømmelse:' : (currentUser ? 'Bedøm denne historie:' : 'Log ind for at bedømme')}</p>
+                <RatingStars 
+                    rating={userRating} 
+                    onRate={onRate} 
+                    storyId={story.id} 
+                    disabled={!!userRating || !currentUser}
+                    isLoggedIn={!!currentUser}
+                />
+           </div>
            <Link to={createPageUrl(`ReadSharedStory?id=${story.id}`)} className="w-full">
                 <Button className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-xl">
                     <Eye className="w-4 h-4 mr-2" />
