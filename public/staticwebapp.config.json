@@ -1,6 +1,18 @@
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/images/*", "/css/*", "/js/*"]
+    "exclude": [
+      "/assets/*",
+      "/css/*",
+      "/images/*",
+      "/js/*",
+      "/favicon.ico"
+    ]
+  },
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/index.html",
+      "statusCode": 200
+    }
   }
 }
