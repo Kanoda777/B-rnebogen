@@ -4,9 +4,17 @@
     "exclude": [
       "/assets/*",
       "/css/*",
+      "/fonts/*",
       "/images/*",
       "/js/*",
-      "/favicon.ico"
+      "/favicon.ico",
+      "/manifest.webmanifest",
+      "/manifest.json",
+      "/robots.txt",
+      "/service-worker.js",
+      "/sw.js",
+      "/.auth/*",
+      "/api/*"
     ]
   },
   "responseOverrides": {
